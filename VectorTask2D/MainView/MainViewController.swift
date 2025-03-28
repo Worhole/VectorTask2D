@@ -19,17 +19,24 @@ class MainViewController: UIViewController {
         $0.scaleMode = .aspectFill
         $0.size = view.bounds.size
         $0.backgroundColor = .systemBackground
+        
         return $0
     }(MainScene(size: view.bounds.size))
-
+    
     weak var delegate:MainViewControllerDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        navigationItem.title = "Main"
+        navigationItem.title = "2D-полотно"
         setupBarButtons()
         setupSpriteView()
+        scene.sceneDelegate = self
+       
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setupBarButtons()
     }
 }
 
@@ -55,12 +62,12 @@ private extension MainViewController {
     @objc
     func showCreateVectorView(){
         let addVectorController = AddVectorViewController()
-        addVectorController.delegate = scene
         let addVectorNav = UINavigationController(rootViewController: addVectorController)
         present(addVectorNav, animated: true)
     }
     
 }
+
 
 private extension MainViewController {
     private func setupSpriteView(){
@@ -68,4 +75,40 @@ private extension MainViewController {
         spriteView.presentScene(scene)
         view.addSubview(spriteView)
     }
+}
+
+
+
+extension MainViewController:MainSceneDelegate{
+     func editVector() {
+        
+        navigationController?.navigationBar.topItem?.title = "Вектор выбран"
+        
+        let newRightButton = UIBarButtonItem(title: "Изменить",
+                                             style: .done,
+                                             target: self,
+                                             action: #selector(editData))
+        navigationItem.rightBarButtonItem = newRightButton
+        
+        let newLeftButton = UIBarButtonItem(image: UIImage(systemName: "xmark"),
+                                            style: .done, target: self,
+                                            action: #selector(dismissSelection))
+        navigationItem.leftBarButtonItem = newLeftButton
+    }
+    
+
+    @objc
+    func editData() {
+        setupBarButtons()
+        navigationItem.title = "2D-полотно"
+    }
+
+    @objc
+    func dismissSelection() {
+        NotificationCenter.default.post(name: NSNotification.Name("updateCanvas"), object: nil)
+        scene.selectedVector = nil
+        setupBarButtons()
+        navigationItem.title = "2D-полотно"
+    }
+    
 }

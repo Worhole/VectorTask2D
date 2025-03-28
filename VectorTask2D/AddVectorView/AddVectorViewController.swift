@@ -7,13 +7,8 @@
 
 import UIKit
 
-protocol AddVectorDelegate:AnyObject {
-    func addVector()
-}
-
 class AddVectorViewController: UIViewController {
     
-    weak var delegate:AddVectorDelegate?
     var isEnabledAdd = false
 
     lazy var x1Label:UILabel = {
@@ -151,9 +146,9 @@ private extension AddVectorViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .done, target: self, action: #selector(tapDismiss))
         navigationItem.leftBarButtonItem?.tintColor = .black
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(tapAdd))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Создать", style: .done, target: self, action: #selector(tapAdd))
         navigationItem.rightBarButtonItem?.tintColor =  .systemPurple
-        navigationItem.title = "Add Vector"
+        navigationItem.title = "Создать вектор"
         navigationItem.rightBarButtonItem?.isEnabled = isEnabledAdd
     }
     
@@ -171,21 +166,11 @@ private extension AddVectorViewController {
     
     @objc
     func tapAdd(){
-        if let delegate = delegate{
-            guard let strX1 = x1TextField.text,let strX2 = x2TextField.text ,let strY1 = y1TextField.text ,let strY2 = y2TextField.text  else {return}
-            guard let x1 = Double(strX1),let x2 = Double(strX2),let y1 = Double(strY1) ,let y2 = Double(strY2) else {return}
-            
-            let vectorColor = UIColor.randomColor().encode()
-            CoreDataManager.shared.saveVector(x1: x1, y1: y1, x2: x2, y2: y2, color: vectorColor, length: vectorLength(_x1: x1, y1: y1, _x2: x2, y2: y2))
-            
-            delegate.addVector()
-        }
+        guard let strX1 = x1TextField.text,let strX2 = x2TextField.text ,let strY1 = y1TextField.text ,let strY2 = y2TextField.text  else {return}
+        guard let x1 = Double(strX1),let x2 = Double(strX2),let y1 = Double(strY1) ,let y2 = Double(strY2) else {return}
+        let vectorColor = UIColor.randomColor().encode()
+        CoreDataManager.shared.createVector(x1: x1, y1: y1, x2: x2, y2: y2, color: vectorColor)
         dismiss(animated: true)
-        print("Add")
     }
-    func vectorLength(_x1: Double, y1: Double, _x2: Double, y2: Double)->Double{
-        let dx = Double(_x2 - _x1)
-        let dy = Double(y2 - y1)
-        return sqrt(dx * dx + dy * dy)
-    }
+   
 }

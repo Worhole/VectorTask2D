@@ -21,7 +21,7 @@ class Grid:SKSpriteNode {
         self.rows = rows
         self.cols = cols
     }
-
+    
     class func gridTexture(blockSize:CGFloat,rows:Int,cols:Int) -> SKTexture? {
         
         let size = CGSize(width: CGFloat(cols)*blockSize+1.0, height: CGFloat(rows)*blockSize+1.0)

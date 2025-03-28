@@ -8,8 +8,7 @@
 import UIKit
 
 protocol SideMenuContollerDelegate:AnyObject{
-    func didSelect(menuItem: Vector)
-    func didRemove()
+    func selectedVector(vector: Vector)
 }
 
 class SideMenuViewController: UIViewController {
@@ -61,7 +60,7 @@ extension SideMenuViewController:UITableViewDataSource {
 extension SideMenuViewController:UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        delegate?.didSelect(menuItem: model[indexPath.row])
+        delegate?.selectedVector(vector: model[indexPath.row])
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -69,7 +68,6 @@ extension SideMenuViewController:UITableViewDelegate {
             CoreDataManager.shared.deleteVector(self.model[indexPath.row])
             self.model.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
-            self.delegate?.didRemove()
             completion(true)
         }
         return UISwipeActionsConfiguration(actions: [swipeAction])
@@ -84,7 +82,8 @@ extension SideMenuViewController {
 
 extension SideMenuViewController {
     func setupNotification(){
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name:NSNotification.Name("saveVector"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name:NSNotification.Name("createVector"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name:NSNotification.Name("updateVector"), object: nil)
     }
     @objc
     func reloadData(){

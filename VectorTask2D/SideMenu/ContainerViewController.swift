@@ -7,6 +7,7 @@
 
 import UIKit
 
+
 class ContainerViewController: UIViewController {
     
     enum MenuState{
@@ -14,6 +15,8 @@ class ContainerViewController: UIViewController {
     }
     
     private var menuState:MenuState = .closed
+    
+   
     
     let sideMenuVC = SideMenuViewController()
     let mainVC = MainViewController()
@@ -25,7 +28,9 @@ class ContainerViewController: UIViewController {
     }
     
     private func addChildsVC(){
+        
         sideMenuVC.delegate = mainVC.scene
+        
         addChild(sideMenuVC)
         view.addSubview(sideMenuVC.view)
         sideMenuVC.didMove(toParent: self)
@@ -36,6 +41,7 @@ class ContainerViewController: UIViewController {
         view.addSubview(nav.view)
         nav.didMove(toParent: self)
         self.navVC = nav
+        
     }
 }
 
@@ -63,3 +69,4 @@ extension ContainerViewController:MainViewControllerDelegate{
         }
     }
 }
+

@@ -8,81 +8,150 @@
 import SpriteKit
 import UIKit
 
+
+protocol MainSceneDelegate:AnyObject{
+    func editVector()
+}
+
 class MainScene:SKScene{
+    weak var sceneDelegate:MainSceneDelegate?
     
+    var pendingVectorUpdates: [UUID: (Double, Double, Double, Double)] = [:]
+    
+    var isTransferringVector = false
     let cameraNode = SKCameraNode()
-    var rows:Int = 10
-    var cols:Int = 10
-    var blockSize:CGFloat = 30
-    var grid:Grid?
+    var grid: Grid! = Grid(blockSize: 30, rows: 10, cols: 10)
+
+    var origPoint:CGPoint?
+    var origStartPoint:CGPoint?
+    var origEndPoint:CGPoint?
+    var selectedVector: SKShapeNode?
+    var isStretchingStart = false
     
     override func didMove(to view: SKView) {
+        
         camera = cameraNode
         self.addChild(cameraNode)
+        grid.anchorPoint = .zero
+        self.addChild(grid)
         setupGestureRecognizers(view: view)
-        drawGrip()
-        setupNotification()
+        setupNotifications()
+        
+        grawGridChildren()
     }
+    
 }
 
 extension MainScene{
-    func setupNotification(){
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name:NSNotification.Name("saveVector"), object: nil)
+    func setupNotifications(){
+        NotificationCenter.default.addObserver(self, selector: #selector(createVector), name:NSNotification.Name("createVector"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deleteVector), name: NSNotification.Name("deleteVector"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateChildren), name: NSNotification.Name("updateCanvas"), object: nil)
     }
     @objc
-    func reloadData(){
+    func createVector(){
         DispatchQueue.main.async {
-            self.drawGrip()
+            self.grawGridChildren()
         }
     }
     @objc
     func deleteVector(){
         DispatchQueue.main.async {
-            self.drawGrip()
+            self.deleteGridChildren()
         }
     }
-}
-
-extension MainScene:AddVectorDelegate {
-    func addVector() {
-       drawGrip()
+    @objc
+    func updateChildren(){
+        DispatchQueue.main.async {
+            self.updateGridChildren()
+        }
+        
     }
 }
+
 
 extension MainScene:SideMenuContollerDelegate{
-    func didSelect(menuItem: Vector) {
-        print(menuItem.length)
-    }
-    
-    func didRemove() {
-        print("удалилос")
+    func selectedVector(vector: Vector) {
+        print("vector id: \(String(describing: vector.id))")
+        if grid.children.isEmpty {
+              grawGridChildren()
+          }
+        print(grid.children.count)
+         
+        for node in grid.children {
+            if let vectorNode = node as? SKShapeNode, vectorNode.name == vector.id?.uuidString {
+                    print(vectorNode.name as Any)
+                    let origWidth = vectorNode.lineWidth
+                    let increaseWidth = SKAction.run { vectorNode.lineWidth = 10}
+                    let wait = SKAction.wait(forDuration: 1.0)
+                    let decreaseWidth = SKAction.run { vectorNode.lineWidth = origWidth}
+                    let sequence = SKAction.sequence([increaseWidth, wait, decreaseWidth])
+                    vectorNode.run(sequence)
+                   
+                    return
+                }
+            }
     }
 }
 
 extension MainScene {
-
-    func drawGrip(){
-        guard let grid = Grid(blockSize: blockSize, rows: rows, cols: cols) else {return}
-        grid.anchorPoint = .zero
-        self.grid = grid
-        self.addChild(grid)
     
+    func updateGridChildren(){
+        grid.removeAllChildren()
         CoreDataManager.shared.fetchVector().forEach { fetchData in
-            if cols <= Int(fetchData.x1) || rows <= Int(fetchData.y1) {
+            if grid.cols <= Int(fetchData.x1) || grid.rows <= Int(fetchData.y1) {
                 grid.updateGrid(newRows: Int(fetchData.y1) + 1, newCols: Int(fetchData.x1) + 1)
             }
-            if cols <= Int(fetchData.x2) || rows <= Int(fetchData.y2) {
+            if grid.cols  <= Int(fetchData.x2) || grid.rows <= Int(fetchData.y2) {
                 grid.updateGrid(newRows: Int(fetchData.y2) + 1, newCols: Int(fetchData.x2) + 1)
             }
+            guard let vectorId = fetchData.id?.uuidString else {return}
             let vector = DrawVector(
-                from: grid.gridPosition(x: Int(fetchData.x1), y: Int(fetchData.y1)),
-                to: grid.gridPosition(x: Int(fetchData.x2), y: Int(fetchData.y2)),
+                from: (grid.gridPosition(x: Int(fetchData.x1), y: Int(fetchData.y1))),
+                to: (grid.gridPosition(x: Int(fetchData.x2), y: Int(fetchData.y2))),
                 color: UIColor.color(withData: fetchData.color))
+            vector.name = vectorId
             grid.addChild(vector)
         }
+    }
+    
+    func grawGridChildren(){
+ 
+        let existingNodes = grid.children.compactMap { $0 as? SKShapeNode }
         
-        print("добавил")
+        let existingNames = Set(existingNodes.compactMap { $0.name })
+        
+        CoreDataManager.shared.fetchVector().forEach { fetchData in
+            if grid.cols <= Int(fetchData.x1) || grid.rows <= Int(fetchData.y1) {
+                grid.updateGrid(newRows: Int(fetchData.y1) + 1, newCols: Int(fetchData.x1) + 1)
+            }
+            if grid.cols  <= Int(fetchData.x2) || grid.rows <= Int(fetchData.y2) {
+                grid.updateGrid(newRows: Int(fetchData.y2) + 1, newCols: Int(fetchData.x2) + 1)
+            }
+           
+            guard let vectorId = fetchData.id?.uuidString else {return}
+            print(fetchData.id?.uuidString ?? "nil")
+                if existingNames.contains(vectorId){return}
+           
+                let vector = DrawVector(
+                    from: (grid.gridPosition(x: Int(fetchData.x1), y: Int(fetchData.y1))),
+                    to: (grid.gridPosition(x: Int(fetchData.x2), y: Int(fetchData.y2))),
+                    color: UIColor.color(withData: fetchData.color))
+                vector.name = vectorId
+                grid.addChild(vector)
+        }
+        print(" после обновления grid: \(grid.children.count)")
+    }
+    
+    func deleteGridChildren(){
+        let existingNodes = grid.children.compactMap { $0 as? SKShapeNode }
+        let validIDs = Set(CoreDataManager.shared.fetchVector().map { $0.id?.uuidString })
+        
+        for node in existingNodes {
+            if let nodeName = node.name, !validIDs.contains(nodeName) {
+                node.removeFromParent()
+            }
+        }
     }
 }
 
@@ -121,20 +190,3 @@ private extension MainScene {
     }
 }
 
-private extension MainScene {
-    private func setupGestureRecognizers(view: SKView) {
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
-        view.addGestureRecognizer(panGesture)
-    }
-    
-    @objc private func handlePan(gesture: UIPanGestureRecognizer) {
-        let translation = gesture.translation(in: gesture.view)
-        
-        if gesture.state == .changed {
-            let newX = cameraNode.position.x - translation.x
-            let newY = cameraNode.position.y + translation.y
-            cameraNode.position = CGPoint(x: newX, y: newY)
-            gesture.setTranslation(.zero, in: gesture.view)
-        }
-    }
-}
