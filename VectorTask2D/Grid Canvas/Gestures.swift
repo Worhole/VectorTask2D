@@ -34,7 +34,6 @@ extension MainScene {
         transferGesture.delegate = self
         view.addGestureRecognizer(transferGesture)
         
-       
     }
     
     @objc
@@ -67,7 +66,6 @@ extension MainScene {
         
         if let vectorNode = node as? SKShapeNode {
             sceneDelegate?.editVector()
-            print("вектор: \(vectorNode.name ?? "Без имени")")
             selectedVector = vectorNode
             
             
@@ -146,7 +144,7 @@ extension MainScene {
                 index += 1
             }
         }
-        print(points)
+       
         
         if gestureRecognizer.state == .ended {
             selectedVector = nil
@@ -182,6 +180,25 @@ extension MainScene {
         mutablePath.move(to: points[1])
         mutablePath.addLine(to: vectorPoint2)
         
+        if gestureRecognizer.state == .ended{
+            let convertStartNode = convert(points[0], to: grid)
+            let convertEndNode = convert(points[1], to: grid)
+            
+            let gridStartX = Int(round(convertStartNode.x / grid.blockSize))
+            let gridStartY = Int(round(convertStartNode.y / grid.blockSize))
+            
+            let gridEndX = Int(round(convertEndNode.x / grid.blockSize))
+            let gridEndY = Int(round(convertEndNode.y / grid.blockSize))
+            
+            let pointStart = CGPoint(x: gridStartX, y: gridStartY)
+            let pointEnd = CGPoint(x: gridEndX, y: gridEndY)
+            
+            if  let uuid = UUID(uuidString: vectorNode.name!){
+                sceneDelegate?.editData(id: uuid, x1: pointStart.x, y1: pointStart.y, x2: pointEnd.x, y2: pointEnd.y)
+            }
+            
+            
+        }
         vectorNode.path = mutablePath
         gestureRecognizer.setTranslation(.zero, in: gestureRecognizer.view)
     }
@@ -205,15 +222,10 @@ extension MainScene {
         if gestureRecognizer.state == .ended {
             let convertNode = convert(vectorNode.position, to: grid)
             
-            let gridX = Int(round(convertNode.x / grid.blockSize))
-            let gridY = Int(round(convertNode.y / grid.blockSize))
-            
-            let delta = grid.gridPosition(x: gridX, y: gridY)
-            
-            let vectorOffsetX = delta.x / grid.blockSize
-            let vectorOffsetY = delta.y / grid.blockSize
-            
-            vectorNode.position = delta
+            let vectorOffsetX = Double(round(convertNode.x / grid.blockSize))
+            let vectorOffsetY = Double(round(convertNode.y / grid.blockSize))
+          
+            vectorNode.position = grid.gridPosition(x: Int(vectorOffsetX), y: Int(vectorOffsetY))
             
             if  let uuid = UUID(uuidString: vectorNode.name!){
                 
@@ -226,7 +238,6 @@ extension MainScene {
                 let y2 = Double(vectorOffsetY + origEndPoint!.y)
                 
                 sceneDelegate?.editData(id: uuid, x1: x1, y1: y1, x2: x2, y2: y2)
-                
             }
             
             isTransferringVector = false

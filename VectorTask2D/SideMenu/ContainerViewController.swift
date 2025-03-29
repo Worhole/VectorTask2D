@@ -16,7 +16,6 @@ class ContainerViewController: UIViewController {
     
     private var menuState:MenuState = .closed
     
-    
     let sideMenuVC = SideMenuViewController()
     let mainVC = MainViewController()
     var navVC:UINavigationController?

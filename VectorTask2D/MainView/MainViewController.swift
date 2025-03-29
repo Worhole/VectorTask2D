@@ -112,7 +112,6 @@ extension MainViewController:MainSceneDelegate{
 
     @objc
     func updateData() {
-        print("vectorCoordinate \(vectorCoordinate.x1)")
         CoreDataManager.shared.updateVector(id: vectorCoordinate.id, x1: vectorCoordinate.x1, y1: vectorCoordinate.y1, x2: vectorCoordinate.x2, y2: vectorCoordinate.y2)
         setupBarButtons()
         navigationItem.title = "2D-полотно"
