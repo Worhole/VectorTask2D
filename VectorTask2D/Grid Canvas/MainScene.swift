@@ -11,12 +11,11 @@ import UIKit
 
 protocol MainSceneDelegate:AnyObject{
     func editVector()
+    func editData(id:UUID,x1:Double, y1:Double, x2:Double, y2:Double)
 }
 
 class MainScene:SKScene{
     weak var sceneDelegate:MainSceneDelegate?
-    
-    var pendingVectorUpdates: [UUID: (Double, Double, Double, Double)] = [:]
     
     var isTransferringVector = false
     let cameraNode = SKCameraNode()

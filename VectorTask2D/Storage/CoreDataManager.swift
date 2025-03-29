@@ -57,8 +57,9 @@ public final class CoreDataManager:NSObject {
     
     public func updateVector(id:UUID,x1:Double, y1:Double, x2:Double, y2:Double){
         
-        let fetchRequerst = NSFetchRequest<NSFetchRequestResult>(entityName: "Vector")
+        let fetchRequerst = Vector.fetchRequest()
         fetchRequerst.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        fetchRequerst.fetchLimit = 1
         
         do {
             let vectors = try context.fetch(fetchRequerst) as? [Vector]
@@ -71,8 +72,14 @@ public final class CoreDataManager:NSObject {
             vector.x2 = x2
             vector.y2 = y2
             vector.id = id
+            print("x1:\(x1)")
+            print("y1:\(y1)")
+            print("x2:\(x2)")
+            print("y2:\(y2)")
+            
             NotificationCenter.default.post(name: NSNotification.Name("updateCanvas"), object: nil)
             try context.save()
+            
         } catch {
             print("Ошибка при обновлении вектора: \(error.localizedDescription)")
         }

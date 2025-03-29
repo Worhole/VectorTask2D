@@ -23,6 +23,8 @@ class MainViewController: UIViewController {
         return $0
     }(MainScene(size: view.bounds.size))
     
+    var vectorCoordinate = (id:UUID(),x1:0.0,y1:0.0,x2:0.0,y2:0.0)
+    
     weak var delegate:MainViewControllerDelegate?
     
     override func viewDidLoad() {
@@ -80,6 +82,16 @@ private extension MainViewController {
 
 
 extension MainViewController:MainSceneDelegate{
+    
+    func editData(id: UUID, x1: Double, y1: Double, x2: Double, y2: Double) {
+        vectorCoordinate.id = id
+        vectorCoordinate.x1 = x1
+        vectorCoordinate.x2 = x2
+        vectorCoordinate.y1 = y1
+        vectorCoordinate.y2 = y2
+        navigationItem.rightBarButtonItem?.isEnabled = true
+    }
+    
      func editVector() {
         
         navigationController?.navigationBar.topItem?.title = "Вектор выбран"
@@ -87,26 +99,30 @@ extension MainViewController:MainSceneDelegate{
         let newRightButton = UIBarButtonItem(title: "Изменить",
                                              style: .done,
                                              target: self,
-                                             action: #selector(editData))
+                                             action: #selector(updateData))
         navigationItem.rightBarButtonItem = newRightButton
         
         let newLeftButton = UIBarButtonItem(image: UIImage(systemName: "xmark"),
                                             style: .done, target: self,
                                             action: #selector(dismissSelection))
         navigationItem.leftBarButtonItem = newLeftButton
+        navigationItem.rightBarButtonItem?.isEnabled = false
     }
     
 
     @objc
-    func editData() {
+    func updateData() {
+        print("vectorCoordinate \(vectorCoordinate.x1)")
+        CoreDataManager.shared.updateVector(id: vectorCoordinate.id, x1: vectorCoordinate.x1, y1: vectorCoordinate.y1, x2: vectorCoordinate.x2, y2: vectorCoordinate.y2)
         setupBarButtons()
         navigationItem.title = "2D-полотно"
     }
 
     @objc
     func dismissSelection() {
-        NotificationCenter.default.post(name: NSNotification.Name("updateCanvas"), object: nil)
+        CoreDataManager.shared.context.rollback()
         scene.selectedVector = nil
+        NotificationCenter.default.post(name: NSNotification.Name("updateCanvas"), object: nil)
         setupBarButtons()
         navigationItem.title = "2D-полотно"
     }

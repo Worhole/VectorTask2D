@@ -94,8 +94,7 @@ extension MainScene {
             let distanceToStart = hypot(startPoint.x - newLocation.x, startPoint.y - newLocation.y)
             let distanceToEnd = hypot(endPoint.x - newLocation.x, endPoint.y - newLocation.y)
             let distanceToCenter = hypot(centerPoint.x - newLocation.x, centerPoint.y - newLocation.y)
-            print("distanceToCenter \(distanceToCenter)")
-            print("distanceToEnd\(distanceToEnd)")
+    
             let centerRadius: CGFloat = 50
             let endsRadius: CGFloat = 30
             origPoint = isStretchingStart ? startPoint : endPoint
@@ -155,10 +154,10 @@ extension MainScene {
         
         if isStretchingStart {
             points[0] = newLocation
-            print("начальная точка \(newLocation)")
+
         } else {
             points[1] = newLocation
-            print("конечная точка \(newLocation)")
+    
         }
         
         let mutablePath = CGMutablePath()
@@ -216,16 +215,19 @@ extension MainScene {
             
             vectorNode.position = delta
             
-            let x1 = Double(vectorOffsetX + origStartPoint!.x)
-            
-            let y1 = Double(vectorOffsetY + origStartPoint!.y)
-            
-            let x2 = Double(vectorOffsetX + origEndPoint!.x)
-            
-            let y2 = Double(vectorOffsetY + origEndPoint!.y)
-           
-            guard let uuid = UUID(uuidString: vectorNode.name!) else {return}
-            CoreDataManager.shared.updateVector(id: uuid, x1: x1, y1: y1, x2: x2, y2: y2)
+            if  let uuid = UUID(uuidString: vectorNode.name!){
+                
+                let x1 = Double(vectorOffsetX + origStartPoint!.x)
+                
+                let y1 = Double(vectorOffsetY + origStartPoint!.y)
+                
+                let x2 = Double(vectorOffsetX + origEndPoint!.x)
+                
+                let y2 = Double(vectorOffsetY + origEndPoint!.y)
+                
+                sceneDelegate?.editData(id: uuid, x1: x1, y1: y1, x2: x2, y2: y2)
+                
+            }
             
             isTransferringVector = false
             selectedVector = nil

@@ -83,7 +83,7 @@ extension SideMenuViewController {
 extension SideMenuViewController {
     func setupNotification(){
         NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name:NSNotification.Name("createVector"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name:NSNotification.Name("updateVector"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name:NSNotification.Name("updateCanvas"), object: nil)
     }
     @objc
     func reloadData(){
